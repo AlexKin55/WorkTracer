@@ -1,0 +1,4 @@
+interval_seconds: 20
+output_dir: "./worktracer_data"
+log_file_name: "daily_accumulated.log"
+enable_logging: true

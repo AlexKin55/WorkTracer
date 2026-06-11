@@ -1,0 +1,3 @@
+interval_seconds: 20
+output_dir: "/home/user/workspace/tracker_screenshots"
+enable_logging: true
