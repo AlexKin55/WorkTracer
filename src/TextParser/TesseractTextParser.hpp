@@ -1,11 +1,13 @@
 #pragma once
 #include "ITextParser.hpp"
-#include <tesseract/baseapi.h>
+
 #include <cmath>
+
+#include <tesseract/baseapi.h>
 
 class TesseractTextParser : public ITextParser {
 private:
-    tesseract::TessBaseAPI* ocr;
+    tesseract::TessBaseAPI* m_ocr;
 
 public:
     TesseractTextParser();

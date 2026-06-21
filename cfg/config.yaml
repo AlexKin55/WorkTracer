@@ -1,3 +1,8 @@
-interval_seconds: 20
-output_dir: "/home/user/workspace/tracker_screenshots"
-enable_logging: true
+intervalSec: 20
+reportIntervalMinutes: 2
+logDir: "/home/alex/Work/WorkTracer/worktracer_data"
+logFile: "daily_accumulated.log"
+enableLogging: true
+ignoredProcesses: [telegram, discord, chrome, slack]
+yandexFolderId: "" # YOUR_YANDEX_FOLDER_ID_HERE
+yandexApiKey: "" # YOUR_YANDEX_API_KEY_HERE

@@ -1,33 +1,44 @@
 #include "ScreenshotService.hpp"
 
-ScreenshotService::ScreenshotService(std::unique_ptr<IScreenshot> screenshot_engine, bool enable_logging)
-    : engine(std::move(screenshot_engine)), verbose(enable_logging) {
+ScreenshotService::ScreenshotService(std::unique_ptr<IScreenshot> screenshotEngine, const AppConfig& cfg)
+    : m_engine(std::move(screenshotEngine)), m_cfg(cfg), m_verbose(m_cfg.enableLogging) {
 }
 
-bool ScreenshotService::capture_window(cv::Mat& out_frame) {
-    if (!engine) {
+bool ScreenshotService::captureWindow(cv::Mat& frame) {
+    if (!m_engine) {
         return false;
     }
 
-    std::string win_id = engine->get_active_window_id_str();
-    if (win_id == "0" || win_id.empty()) {
+    std::string processName = m_engine->getActiveWindowProcessName();
+    std::string processLower = processName;
+    std::transform(processLower.begin(), processLower.end(), processLower.begin(), ::tolower);
+
+    const auto& ignoredList = m_cfg.ignoredProcesses;
+    if (ignoredList.find(processLower) != ignoredList.end()) {
+        std::cout << "[ScreenshotService] Capture skipped. Process '" 
+                  << processName << "' is in the ignore list." << std::endl;
         return false;
     }
 
-    bool success = engine->capture_to_memory(out_frame);
+    std::string winId = m_engine->getActiveWindowId();
+    if (winId == "0" || winId.empty()) {
+        return false;
+    }
+
+    bool success = m_engine->captureToMemory(frame);
     
-    if (success && verbose) {
-        std::cout << "[ScreenshotService] Успешно захвачено окно ID: " << win_id 
-                    << " (" << out_frame.cols << "x" << out_frame.rows << " px в RAM)" << std::endl;
+    if (success && m_verbose) {
+        std::cout << "[ScreenshotService] The window was captured successfully. ID: " << winId 
+                    << " (" << frame.cols << "x" << frame.rows << " px в RAM)" << std::endl;
     }
     return success;
 }
 
-std::string ScreenshotService::get_current_window_id() {
-    return engine ? engine->get_active_window_id_str() : "0";
+std::string ScreenshotService::getCurrentWindowId() {
+    return m_engine ? m_engine->getActiveWindowId() : "0";
 }
 
-std::string ScreenshotService::get_current_window_process_name() {
-    return engine ? engine->get_active_window_process_name() : "unknown";
+std::string ScreenshotService::getCurrentWindowProcessName() {
+    return m_engine ? m_engine->getActiveWindowProcessName() : "unknown";
 }
 

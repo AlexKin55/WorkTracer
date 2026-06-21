@@ -5,11 +5,12 @@
     "version": "0.2.0",
     "configurations": [
     {
-        "name": "(gdb) Launch",
+        "name": "(gdb) Launch WorkTracer",
         "type": "cppdbg",
         "request": "launch",
         "program": "${workspaceFolder}/build/WorkTracer",
         "args": [
+            "${workspaceFolder}/cfg/config.yaml"
         ],
         "stopAtEntry": false,
         "cwd": "${fileDirname}",
@@ -25,6 +26,16 @@
             {
                 "description": "Set Disassembly Flavor to Intel",
                 "text": "-gdb-set disassembly-flavor intel",
+                "ignoreFailures": true
+            },
+            {
+                "description": "Disable automatic downloading of separate debug symbols",
+                "text": "set debuginfod enabled off",
+                "ignoreFailures": true
+            },
+            {
+                "description": "Disable loading symbols for shared libraries automatically",
+                "text": "set auto-solib-add off",
                 "ignoreFailures": true
             }
         ]

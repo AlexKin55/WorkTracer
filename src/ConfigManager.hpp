@@ -1,19 +1,24 @@
 #pragma once
 
-#include <string>
-#include <string_view>
-#include <fstream>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
+#include <unordered_set>
+#include <string_view>
+#include <string>
 #include <yaml-cpp/yaml.h>
 
 namespace fs = std::filesystem;
 
 struct AppConfig {
-    int interval_seconds = 20;
-    std::string output_dir = "./worktracer_data";
-    std::string log_file_name = "daily_accumulated.log";
-    bool enable_logging = true;
+    int intervalSec = 20;
+    int reportIntervalMinutes = 5;
+    std::string logDir = "./log_data";
+    std::string logFile = "daily_accumulated.log";
+    bool enableLogging = true;
+    std::unordered_set<std::string> ignoredProcesses;
+    std::string yandexFolderId;
+    std::string yandexApiKey;
 };
 
 class ConfigManager {
@@ -21,29 +26,46 @@ private:
     AppConfig cfg;
 
 public:
-    bool load(std::string_view config_path) {
+    bool load(std::string_view configPath) {
         try {
-            if (!fs::exists(config_path)) {
-                std::cout << "[WorkTracer Config] Файл не найден. Создан дефолтный конфиг." << std::endl;
-                save_default(std::string(config_path));
+            if (!fs::exists(configPath)) {
+                std::cout << "[WorkTracer Config] Couldn't config file. Default config file was created." << std::endl;
+                save_default(std::string(configPath));
                 return true;
             }
 
-            YAML::Node node = YAML::LoadFile(std::string(config_path));
-            if (node["interval_seconds"]) {
-                cfg.interval_seconds = node["interval_seconds"].as<int>();
+            YAML::Node node = YAML::LoadFile(std::string(configPath));
+            if (node["intervalSec"]) {
+                cfg.intervalSec = node["intervalSec"].as<int>();
             }
-            if (node["output_dir"]) {
-                cfg.output_dir = node["output_dir"].as<std::string>();
+            if (node["reportIntervalMinutes"]) {
+                cfg.reportIntervalMinutes = node["reportIntervalMinutes"].as<int>();
             }
-            if (node["log_file_name"]) {
-                cfg.log_file_name = node["log_file_name"].as<std::string>();
+            if (node["logDir"]) {
+                cfg.logDir = node["logDir"].as<std::string>();
             }
-            if (node["enable_logging"]) {
-                cfg.enable_logging = node["enable_logging"].as<bool>();
+            if (node["logFile"]) {
+                cfg.logFile = node["logFile"].as<std::string>();
             }
-            if (!fs::exists(cfg.output_dir)) {
-                fs::create_directories(cfg.output_dir);
+            if (node["enableLogging"]) {
+                cfg.enableLogging = node["enableLogging"].as<bool>();
+            }
+            if (node["yandexFolderId"]) {
+                cfg.yandexFolderId = node["yandexFolderId"].as<std::string>();
+            }
+            if (node["yandexApiKey"]) {
+                cfg.yandexApiKey = node["yandexApiKey"].as<std::string>();
+            }          
+            if (node["ignoredProcesses"] && node["ignoredProcesses"].IsSequence()) {
+                cfg.ignoredProcesses.clear();
+                for (const auto& node : node["ignoredProcesses"]) {
+                    std::string process = node.as<std::string>();
+                    std::transform(process.begin(), process.end(), process.begin(), ::tolower);
+                    cfg.ignoredProcesses.insert(process);
+                }
+            }               
+            if (!fs::exists(cfg.logDir)) {
+                fs::create_directories(cfg.logDir);
             }
             return true;
         } catch (const std::exception& e) {
@@ -57,13 +79,13 @@ public:
     }
 
 private:
-    void save_default(const std::string& config_path) {
-        std::ofstream fout(config_path);
-        fout << "interval_seconds: 20\n";
-        fout << "output_dir: \"./worktracer_data\"\n";
-        fout << "log_file_name: \"daily_accumulated.log\"\n";
-        fout << "enable_logging: true\n";
+    void save_default(const std::string& configPath) {
+        std::ofstream fout(configPath);
+        fout << "intervalSec: 20\n";
+        fout << "logDir: \"./worktracer_data\"\n";
+        fout << "logFile: \"daily_accumulated.log\"\n";
+        fout << "enableLogging: true\n";
         fout.close();
-        fs::create_directories(cfg.output_dir);
+        fs::create_directories(cfg.logDir);
     }
 };
